@@ -2,31 +2,18 @@ package com.panaderia.rodrigo.repository;
 
 import com.panaderia.rodrigo.model.Producto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
-public class ProductoRepository {
+@Repository
+public interface ProductoRepository extends JpaRepository<Producto,Integer> {
+ 
+    List<Producto> findByNombre(String nombre);
 
-    @Autowired
-    private ProductoRepository productoRepository;
+    List<Producto> findByCategoria(String categoria);
 
-    public List<Producto> findAll() {
-        return productoRepository.findAll();
-    }
-
-    public void save(Producto producto) {
-        productoRepository.save(producto);
-    }
-
-    public Producto findById(int id) {
-        return productoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
-    }
-
-    public void delete(int id) {
-        productoRepository.deleteById(id);
-    }
 
 }
