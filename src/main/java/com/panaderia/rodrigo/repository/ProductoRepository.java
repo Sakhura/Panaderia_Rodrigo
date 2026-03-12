@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Repository
-public interface ProductoRepository extends JpaRepository<Producto,Integer> {
+public interface ProductoRepository extends JpaRepository<Producto,Long> {
  
     List<Producto> findByNombre(String nombre);
 

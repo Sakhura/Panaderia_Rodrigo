@@ -20,8 +20,8 @@ public class ProductoController {
 
     @GetMapping
     public String listar(Model model) {
-        model.addAllAttributes("productos", productoService.findAll());
-        return "productos/listar"; // template/producto/lista.html
+        model.addAttribute("productos", productoService.findAll());
+        return "productos/lista"; // template/producto/lista.html
     }
 
     @GetMapping("/nuevo")
