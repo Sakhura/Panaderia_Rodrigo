@@ -7,10 +7,12 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-public interface ClienteRepository  extends JpaRepository<Cliente, Long> {
+@Repository
+public interface ClienteRepository extends JpaRepository<Cliente, Long> {
+
     Optional<Cliente> findByEmail(String email);
 
-    List<Cliente> findByNombreContaining(String nombre);
+    List<Cliente> findByNombreContainingIgnoreCase(String nombre);
 
     boolean existsByEmail(String email);
 }

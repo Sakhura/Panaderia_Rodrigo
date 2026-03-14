@@ -19,30 +19,33 @@ public class ProductoService {
         return productoRepository.findAll();
     }
 
-    // ❌ Retornaba void → el RestController necesita el objeto guardado con su ID
     public Producto save(Producto producto) {
         return productoRepository.save(producto);
     }
 
     public Producto findById(Long id) {
         return productoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+                .orElseThrow(() -> new RuntimeException(
+                        "Producto no encontrado con ID: " + id));
+    }
+
+    public Producto update(Long id, Producto productoActualizado) {
+        Producto existente = findById(id);
+        existente.setNombre(      productoActualizado.getNombre());
+        existente.setCategoria(   productoActualizado.getCategoria());
+        existente.setPrecio(      productoActualizado.getPrecio());
+        existente.setStock(       productoActualizado.getStock());
+        existente.setDescripcion( productoActualizado.getDescripcion());
+        existente.setDisponible(  productoActualizado.getDisponible());
+        return productoRepository.save(existente);
     }
 
     public void delete(Long id) {
         productoRepository.deleteById(id);
     }
 
-    // Métodos que faltaban y son usados por controladores y RestControllers
-    public Producto update(Long id, Producto productoActualizado) {
-        Producto existente = findById(id);
-        existente.setNombre(productoActualizado.getNombre());
-        existente.setCategoria(productoActualizado.getCategoria());
-        existente.setPrecio(productoActualizado.getPrecio());
-        existente.setStock(productoActualizado.getStock());
-        existente.setDescripcion(productoActualizado.getDescripcion());
-        existente.setDisponible(productoActualizado.getDisponible());
-        return productoRepository.save(existente);
+    public List<Producto> buscarPorNombre(String nombre) {
+        return productoRepository.findByNombreContainingIgnoreCase(nombre);
     }
 
     public List<Producto> findByCategoria(String categoria) {
