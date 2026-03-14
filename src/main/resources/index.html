@@ -1,10 +1,313 @@
 <!DOCTYPE html>
-<html lang="en">
+<!--
+  DOCTYPE: Le dice al navegador que este archivo usa HTML5 (la versión moderna).
+  Sin esto, el navegador entraría en "modo quirks" y podría renderizar mal la página.
+-->
+
+<!--
+  xmlns:th  → Activa el dialecto de Thymeleaf, que permite usar atributos especiales
+               como th:text, th:href, th:if, etc. para procesar datos del servidor.
+  xmlns:sec → Activa el dialecto de Spring Security para Thymeleaf, que permite
+               mostrar u ocultar elementos según el ROL del usuario autenticado.
+-->
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+    <!-- Codificación UTF-8: permite mostrar caracteres especiales como ñ, á, é, ü, etc. -->
+    <meta charset="UTF-8"/>
+
+    <!-- Viewport: hace que la página sea RESPONSIVA en dispositivos móviles.
+         width=device-width → el ancho se adapta al tamaño de la pantalla.
+         initial-scale=1.0  → sin zoom inicial. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <title>🍞 Panadería Rodrigo - Inicio</title>
+
+    <!--
+      th:href="@{/css/style.css}" es la forma CORRECTA de enlazar recursos estáticos en Thymeleaf.
+      @{} es la sintaxis para URLs: Thymeleaf resuelve la ruta relativa al context-path
+      del servidor automáticamente (ej: /miapp/css/style.css).
+      Usar href="/css/style.css" directamente puede fallar si hay un context-path configurado.
+    -->
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+
+    <!-- Fuentes de Google: Playfair Display para títulos (elegante/serif) y
+         Lato para texto general (legible/sans-serif). Se cargan desde CDN externo. -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
 </head>
+
 <body>
+
+<!-- ============================================================
+     NAVBAR - Barra de navegación principal
+     Contiene: logo/marca, links de navegación y control de sesión
+     ============================================================ -->
+<nav class="navbar">
+
+    <!-- Sección izquierda: ícono + nombre de la panadería como link al inicio -->
+    <div class="navbar-brand">
+        <span class="brand-icon">🍞</span>
+        <!-- th:href="@{/}" genera la URL raíz del proyecto de forma dinámica -->
+        <a th:href="@{/}" class="brand-name">Panadería Rodrigo</a>
+    </div>
+
+    <!-- Links de navegación central -->
+    <div class="navbar-menu">
+        <a th:href="@{/productos}" class="nav-link">Productos</a>
+
+        <!--
+          sec:authorize="hasAnyRole('ADMIN','EMPLEADO')"
+          Este atributo del dialecto Spring Security OCULTA el elemento del HTML
+          si el usuario NO tiene ninguno de esos roles.
+          Importante: esto es seguridad de PRESENTACIÓN. La seguridad real
+          debe estar también configurada en el backend (SecurityConfig).
+          Nunca confiar solo en ocultar elementos en el frontend.
+        -->
+        <a th:href="@{/clientes}" class="nav-link" sec:authorize="hasAnyRole('ADMIN','EMPLEADO')">Clientes</a>
+        <a th:href="@{/pedidos}" class="nav-link" sec:authorize="hasAnyRole('ADMIN','EMPLEADO')">Pedidos</a>
+    </div>
+
+    <!-- Sección derecha: info del usuario logueado + botón de salir o entrar -->
+    <div class="navbar-auth">
+
+        <!--
+          sec:authorize="isAuthenticated()" → Solo se muestra si HAY una sesión activa.
+          Muestra el nombre del usuario y una etiqueta (badge) según su rol.
+        -->
+        <span sec:authorize="isAuthenticated()" class="user-info">
+            👤
+            <!--
+              sec:authentication="name" → Inyecta el nombre de usuario de la sesión
+              actual directamente en el texto del span. Es equivalente a acceder a
+              SecurityContextHolder en Java pero desde la vista.
+            -->
+            <span sec:authentication="name"></span>
+
+            <!-- Badges exclusivos: solo aparece uno u otro según el rol asignado -->
+            <span sec:authorize="hasRole('ADMIN')" class="badge badge-admin">ADMIN</span>
+            <span sec:authorize="hasRole('EMPLEADO')" class="badge badge-empleado">EMPLEADO</span>
+        </span>
+
+        <!--
+          Formulario de LOGOUT: debe ser POST (no GET) por seguridad.
+          Spring Security bloquea el logout por GET para evitar ataques CSRF
+          donde un sitio externo podría cerrar tu sesión con un simple link.
+          th:action="@{/logout}" apunta al endpoint de logout que maneja Spring Security.
+        -->
+        <form th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()" style="display:inline">
+            <button type="submit" class="btn-logout">Salir</button>
+        </form>
+
+        <!--
+          sec:authorize="isAnonymous()" → Solo visible si el usuario NO está logueado.
+          Es el complemento lógico de isAuthenticated().
+        -->
+        <a th:href="@{/login}" sec:authorize="isAnonymous()" class="btn-login">Ingresar</a>
+    </div>
+</nav>
+
+
+<!-- ============================================================
+     CONTENIDO PRINCIPAL
+     ============================================================ -->
+<main class="main-content">
+
+    <!--
+      th:if="${mensaje}" → Renderiza este div SOLO si el modelo tiene una variable
+      llamada "mensaje" con valor no nulo/vacío.
+      th:text="${mensaje}" → Reemplaza el contenido del div con ese valor.
+      Patrón común para mostrar mensajes de éxito después de guardar o eliminar datos
+      (viene generalmente por RedirectAttributes en el controlador).
+    -->
+    <div th:if="${mensaje}" class="alert alert-success" th:text="${mensaje}"></div>
+
+
+    <!-- ── SECCIÓN HERO ──────────────────────────────────────────
+         Banner principal decorativo visible para TODOS los usuarios,
+         incluso sin sesión iniciada. Sirve como "vitrina" pública.
+    ─────────────────────────────────────────────────────────── -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">🍞 Panadería Rodrigo</h1>
+            <p class="hero-subtitle">Artesanal · Tradicional · Con amor desde 1985</p>
+            <a th:href="@{/productos}" class="btn btn-primary btn-lg">Ver Productos</a>
+        </div>
+    </section>
+
+
+    <!-- ── SECCIÓN ESTADÍSTICAS ──────────────────────────────────
+         Solo visible para usuarios autenticados (sec:authorize).
+         Muestra tarjetas con métricas enviadas por el controlador
+         a través del Model (totalProductos, totalClientes, etc.).
+    ─────────────────────────────────────────────────────────── -->
+    <section class="stats-section" sec:authorize="isAuthenticated()">
+        <div class="stats-grid">
+
+            <!--
+              th:text="${totalProductos}" → Muestra el valor de la variable del modelo.
+              El "0" dentro del tag es el valor por defecto visible en el IDE o
+              si Thymeleaf no procesa la plantilla (no se muestra en producción).
+            -->
+            <div class="stat-card stat-productos">
+                <div class="stat-icon">🥐</div>
+                <div class="stat-number" th:text="${totalProductos}">0</div>
+                <div class="stat-label">Productos</div>
+            </div>
+
+            <div class="stat-card stat-clientes">
+                <div class="stat-icon">👥</div>
+                <div class="stat-number" th:text="${totalClientes}">0</div>
+                <div class="stat-label">Clientes</div>
+            </div>
+
+            <div class="stat-card stat-pedidos">
+                <div class="stat-icon">📦</div>
+                <div class="stat-number" th:text="${totalPedidos}">0</div>
+                <div class="stat-label">Pedidos Totales</div>
+            </div>
+
+            <div class="stat-card stat-pendientes">
+                <div class="stat-icon">⏳</div>
+                <div class="stat-number" th:text="${pedidosPendientes}">0</div>
+                <div class="stat-label">Pendientes</div>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ── ACCESO RÁPIDO ─────────────────────────────────────────
+         Atajos visuales con íconos para las acciones más frecuentes.
+         Solo visible para usuarios autenticados.
+    ─────────────────────────────────────────────────────────── -->
+    <section class="quick-access" sec:authorize="isAuthenticated()">
+        <h2 class="section-title">Acceso Rápido</h2>
+        <div class="quick-grid">
+
+            <a th:href="@{/productos}" class="quick-card">
+                <span class="quick-icon">🥖</span>
+                <span class="quick-label">Ver Productos</span>
+            </a>
+
+            <!--
+              Este acceso rápido para crear productos solo lo ve el ADMIN.
+              Un EMPLEADO puede ver productos pero no crear nuevos.
+              Principio de Menor Privilegio: cada usuario solo ve lo que necesita.
+            -->
+            <a th:href="@{/productos/nuevo}" class="quick-card" sec:authorize="hasRole('ADMIN')">
+                <span class="quick-icon">➕</span>
+                <span class="quick-label">Nuevo Producto</span>
+            </a>
+
+            <a th:href="@{/clientes}" class="quick-card">
+                <span class="quick-icon">👥</span>
+                <span class="quick-label">Gestionar Clientes</span>
+            </a>
+
+            <a th:href="@{/pedidos}" class="quick-card">
+                <span class="quick-icon">📋</span>
+                <span class="quick-label">Ver Pedidos</span>
+            </a>
+        </div>
+    </section>
+
+
+    <!-- ── ALERTA DE STOCK BAJO ──────────────────────────────────
+         Se muestra SOLO si hay productos con stock bajo en la lista.
+         La doble condición evita errores: primero verifica que la
+         variable existe (!=null) y luego que no está vacía (!isEmpty()).
+    ─────────────────────────────────────────────────────────── -->
+    <section class="stock-alert" sec:authorize="hasAnyRole('ADMIN','EMPLEADO')"
+             th:if="${stockBajo != null and !stockBajo.isEmpty()}">
+        <h2 class="section-title">⚠️ Productos con Stock Bajo</h2>
+        <div class="stock-list">
+
+            <!--
+              th:each="p : ${stockBajo}" → Es el FOR-EACH de Thymeleaf.
+              Itera sobre la lista "stockBajo" del modelo, asignando cada
+              elemento a la variable temporal "p".
+              Equivalente Java: for (Producto p : stockBajo) { ... }
+            -->
+            <div class="stock-item" th:each="p : ${stockBajo}">
+                <span th:text="${p.nombre}"></span>
+                <!--
+                  Concatenación con + dentro de th:text.
+                  Se usa 'Stock: ' (comillas simples) para strings literales
+                  dentro de expresiones Thymeleaf ${}.
+                -->
+                <span class="stock-badge" th:text="${'Stock: ' + p.stock}"></span>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ── ÚLTIMOS PEDIDOS ───────────────────────────────────────
+         Tabla con los pedidos más recientes. Misma doble validación
+         de null + isEmpty() antes de renderizar la sección completa.
+    ─────────────────────────────────────────────────────────── -->
+    <section class="ultimos-pedidos" sec:authorize="hasAnyRole('ADMIN','EMPLEADO')"
+             th:if="${ultimosPedidos != null and !ultimosPedidos.isEmpty()}">
+        <h2 class="section-title">📦 Últimos Pedidos</h2>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Cliente</th>
+                <th>Estado</th>
+                <th>Total</th>
+                <th>Fecha</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!--
+              th:each sobre una tabla: se itera en el <tr>, generando
+              una fila completa por cada pedido de la lista.
+            -->
+            <tr th:each="pedido : ${ultimosPedidos}">
+                <td th:text="${pedido.id}"></td>
+
+                <!-- Acceso a objeto anidado: pedido.cliente.nombre
+                     Thymeleaf navega la relación @ManyToOne automáticamente. -->
+                <td th:text="${pedido.cliente.nombre}"></td>
+
+                <td>
+                    <!--
+                      th:classappend → AGREGA una clase CSS al elemento sin
+                      reemplazar las existentes.
+                      Aquí se construye dinámicamente una clase como:
+                      "estado-pendiente", "estado-entregado", etc.
+                      Esto permite dar color distinto a cada estado
+                      solo con CSS sin lógica adicional.
+                      .name() obtiene el nombre del enum como String.
+                      .toLowerCase() lo convierte a minúsculas.
+                    -->
+                    <span class="estado-badge"
+                          th:classappend="${'estado-' + pedido.estado.name().toLowerCase()}"
+                          th:text="${pedido.estado}"></span>
+                </td>
+
+                <!-- Concatenación para mostrar el símbolo $ antes del monto -->
+                <td th:text="${'$' + pedido.total}"></td>
+
+                <!--
+                  #temporals.format() → Utilidad de Thymeleaf para formatear
+                  objetos LocalDateTime/LocalDate de Java.
+                  'dd/MM/yyyy HH:mm' → formato chileno: día/mes/año hora:minutos.
+                  Sin esto, se mostraría el toString() feo del objeto Java.
+                -->
+                <td th:text="${#temporals.format(pedido.fechaPedido, 'dd/MM/yyyy HH:mm')}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+</main>
+
+
+<!-- Footer simple con copyright y tecnología usada -->
+<footer class="footer">
+    <p>🍞 Panadería Rodrigo &copy; 2026 &mdash; Hecho con Spring Boot</p>
+</footer>
 
 </body>
 </html>

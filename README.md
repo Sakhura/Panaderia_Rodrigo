@@ -300,8 +300,9 @@ El proyecto fue desarrollado de forma progresiva en 5 etapas:
 ## 👤 Autor
 
 **Tu nombre aquí, solo para estudiantes, recuerden que siempre puede mejorar el proyecto**
-- GitHub: [@tu-usuario](https://github.com/tu-usuario)
-- LinkedIn: [tu-perfil](https://linkedin.com/in/tu-perfil)
+- GitHub: [@tu-usuario](https://github.com/Sakhura/Panaderia_Rodrigo)
+- LinkedIn: [tu-perfil](https://www.linkedin.com/in/sabina-romeror/)
+- Docente: [tu-nombre](Sabina Romero)
 
 ---
 

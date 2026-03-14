@@ -1,18 +1,181 @@
 <!DOCTYPE html>
+<!--
+  Vista de LOGIN: es la puerta de entrada al sistema.
+  Aquí NO se usa el dialecto de Spring Security (xmlns:sec) porque
+  esta página es pública, accesible por usuarios NO autenticados.
+  Solo se necesita el dialecto base de Thymeleaf (xmlns:th).
+-->
 <html xmlns:th="http://www.thymeleaf.org">
-<head><title>Panadería Rodrigo - Login</title></head>
-<body>
-<h2>Panadería Rodrigo</h2>
-<h3>Iniciar sesión</h3>
 
-<div th:if="${param.error}">
-    <p style="color:red">Usuario o contraseña incorrectos</p>
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>🍞 Panadería Rodrigo - Ingresar</title>
+
+    <!-- Mismo enfoque que index.html: rutas con @{} para que Thymeleaf
+         resuelva correctamente el context-path del servidor -->
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
+</head>
+
+<!--
+  La clase "login-page" en el body permite aplicar estilos CSS
+  específicos SOLO para esta página (ej: fondo distinto, centrado vertical)
+  sin afectar el resto de las vistas de la aplicación.
+-->
+<body class="login-page">
+
+<div class="login-container">
+    <div class="login-card">
+
+        <!-- ── ENCABEZADO DE LA TARJETA ──────────────────────────────
+             Sección puramente visual/decorativa.
+             No tiene lógica Thymeleaf porque no depende de datos del servidor.
+        ─────────────────────────────────────────────────────────── -->
+        <div class="login-header">
+            <div class="login-logo">🍞</div>
+            <h1 class="login-title">Panadería Rodrigo</h1>
+            <p class="login-subtitle">Sistema de Gestión Interno</p>
+        </div>
+
+
+        <!-- ── MENSAJES DE ESTADO ────────────────────────────────────
+             Spring Security comunica el resultado del login/logout
+             a través de PARÁMETROS en la URL, no variables del Model.
+
+             Cuando el login falla   → redirige a /login?error
+             Cuando se hace logout   → redirige a /login?logout
+
+             ${param.error}  → lee el parámetro "error"  de la URL actual.
+             ${param.logout} → lee el parámetro "logout" de la URL actual.
+
+             th:if los evalúa como booleano: si el parámetro EXISTE
+             (aunque esté vacío), la condición es verdadera y se muestra el bloque.
+
+             Importante: estos mensajes son mutuamente excluyentes,
+             nunca aparecerán los dos al mismo tiempo.
+        ─────────────────────────────────────────────────────────── -->
+        <div th:if="${param.error}" class="alert alert-error">
+            ❌ Usuario o contraseña incorrectos. Intente nuevamente.
+        </div>
+        <div th:if="${param.logout}" class="alert alert-success">
+            ✅ Sesión cerrada correctamente.
+        </div>
+
+
+        <!-- ── FORMULARIO DE LOGIN ───────────────────────────────────
+             REGLAS CRÍTICAS que Spring Security exige para procesar este form:
+
+             1. th:action="@{/login}" → la URL debe ser exactamente /login (POST).
+                Spring Security intercepta esa ruta automáticamente.
+                Si cambiás la URL sin configurarlo en SecurityConfig, el login no funcionará.
+
+             2. method="post" → NUNCA usar GET para credenciales.
+                GET pondría usuario y contraseña en la URL (visible en historial,
+                logs del servidor y proxies). POST los envía en el cuerpo del request.
+
+             3. Spring Security agrega automáticamente un token CSRF oculto
+                al procesar th:action="@{/login}". Este token protege contra
+                ataques donde un sitio malicioso podría enviar el form sin permiso.
+        ─────────────────────────────────────────────────────────── -->
+        <form th:action="@{/login}" method="post" class="login-form">
+
+            <!-- Campo de USUARIO -->
+            <div class="form-group">
+                <!--
+                  for="username" vincula el label con el input por su id.
+                  Beneficio UX: al hacer clic en el label, el foco va al input.
+                  Beneficio accesibilidad: los lectores de pantalla lo leen correctamente.
+                -->
+                <label for="username" class="form-label">👤 Usuario</label>
+                <input type="text"
+                       id="username"
+                <!--
+                  name="username" → Este nombre es el que Spring Security
+                  busca por defecto al procesar el login.
+                  Si lo cambiás a otro valor (ej: name="user"), debes
+                  configurarlo en SecurityConfig con .usernameParameter("user").
+                -->
+                name="username"
+                class="form-input"
+                placeholder="Ingresá tu usuario"
+                <!--
+                  required → Validación HTML5 del navegador: impide enviar
+                  el form si el campo está vacío. Es una primera capa de
+                  validación en el cliente. Siempre debe haber validación
+                  también en el servidor (nunca confiar solo en el cliente).
+                -->
+                required
+                <!--
+                  autofocus → Coloca el cursor automáticamente en este campo
+                  al cargar la página. Mejora la experiencia de usuario:
+                  no tiene que hacer clic para empezar a escribir.
+                  Solo debe usarse en UN elemento por página.
+                -->
+                autofocus/>
+            </div>
+
+            <!-- Campo de CONTRASEÑA -->
+            <div class="form-group">
+                <label for="password" class="form-label">🔒 Contraseña</label>
+                <input type="password"
+                       id="password"
+                <!--
+                  name="password" → Igual que username, Spring Security
+                  busca este nombre por defecto.
+                  Se puede cambiar con .passwordParameter("clave") en SecurityConfig.
+                -->
+                name="password"
+                class="form-input"
+                placeholder="Ingresá tu contraseña"
+                <!--
+                  type="password" → El navegador oculta los caracteres
+                  mostrando puntos o asteriscos. También evita que el
+                  autocompletado guarde la contraseña en texto plano
+                  (aunque eso depende también del navegador y su configuración).
+                -->
+                required/>
+            </div>
+
+            <!--
+              btn-full → clase CSS que hace que el botón ocupe el 100% del ancho
+              del formulario. Patrón visual muy común en formularios de login
+              para que el CTA (llamado a la acción) sea claro y fácil de presionar.
+            -->
+            <button type="submit" class="btn btn-primary btn-full">
+                Ingresar →
+            </button>
+        </form>
+
+
+        <!-- ── HINTS DE USUARIOS DE PRUEBA ──────────────────────────
+             Sección útil SOLO en entornos de DESARROLLO o DEMO.
+             Muestra credenciales de prueba para que evaluadores o
+             estudiantes puedan probar el sistema fácilmente.
+
+             ⚠️ IMPORTANTE: esto NUNCA debe estar en producción.
+             Exponer usuarios y contraseñas en la UI es un riesgo de seguridad grave.
+             En producción se elimina este bloque o se condiciona con un
+             perfil de Spring (@Profile("dev")).
+        ─────────────────────────────────────────────────────────── -->
+        <div class="login-hints">
+            <p class="hint-title">Usuarios de prueba:</p>
+
+            <!-- Badge visual + credenciales en <code> para mejor legibilidad.
+                 <code> es un tag semántico HTML para mostrar texto como código,
+                 tipicamente en fuente monoespaciada. -->
+            <div class="hint-item">
+                <span class="badge badge-admin">ADMIN</span>
+                <code>rodrigo</code> / <code>admin123</code>
+            </div>
+            <div class="hint-item">
+                <span class="badge badge-empleado">EMPLEADO</span>
+                <code>empleado</code> / <code>emp123</code>
+            </div>
+        </div>
+
+    </div>
 </div>
 
-<form th:action="@{/login}" method="post">
-    <input type="text" name="username" placeholder="Usuario" required/>
-    <input type="password" name="password" placeholder="Contraseña" required/>
-    <button type="submit">Ingresar</button>
-</form>
 </body>
 </html>
