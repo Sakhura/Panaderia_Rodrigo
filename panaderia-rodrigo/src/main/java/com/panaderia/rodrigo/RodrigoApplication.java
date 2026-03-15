@@ -4,9 +4,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class PanaderiaRodrigoApplication {
+public class RodrigoApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(PanaderiaRodrigoApplication.class, args);
+        SpringApplication.run(RodrigoApplication.class, args);
     }
 }

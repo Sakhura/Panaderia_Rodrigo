@@ -2,6 +2,7 @@ package com.panaderia.rodrigo.controller;
 
 import com.panaderia.rodrigo.model.Pedido;
 import com.panaderia.rodrigo.model.Pedido.EstadoPedido;
+import com.panaderia.rodrigo.model.Producto;
 import com.panaderia.rodrigo.service.ClienteService;
 import com.panaderia.rodrigo.service.PedidoService;
 import com.panaderia.rodrigo.service.ProductoService;
@@ -11,6 +12,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/pedidos")
@@ -44,9 +49,23 @@ public class PedidoController {
         return "pedidos/formulario";
     }
 
+    // Bug fix: el formulario HTML envía los checkboxes de productos como una lista
+    // de IDs (Long), no como objetos Producto. @ModelAttribute Pedido no puede
+    // convertir esos IDs a List<Producto> automáticamente.
+    // Solución: recibir los IDs por separado con @RequestParam y resolverlos.
     @PostMapping("/guardar")
     @PreAuthorize("hasAnyRole('ADMIN','EMPLEADO')")
-    public String guardar(@ModelAttribute Pedido pedido, RedirectAttributes flash) {
+    public String guardar(@ModelAttribute Pedido pedido,
+                          @RequestParam(value = "productos", required = false) List<Long> productoIds,
+                          RedirectAttributes flash) {
+
+        List<Producto> productosSeleccionados = (productoIds != null)
+                ? productoIds.stream()
+                .map(id -> productoService.findById(id))
+                .collect(Collectors.toList())
+                : Collections.emptyList();
+
+        pedido.setProductos(productosSeleccionados);
         pedidoService.save(pedido);
         flash.addFlashAttribute("mensaje", "Pedido registrado correctamente ✅");
         return "redirect:/pedidos";

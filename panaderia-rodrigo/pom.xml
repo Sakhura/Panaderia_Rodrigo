@@ -16,7 +16,7 @@
     <artifactId>rodrigo</artifactId>
     <version>1.0.0</version>
     <name>PanaderiaRodrigo</name>
-    <description>Aplicación web para gestión de Panadería Rodrigo - Módulo 6 Alkemy</description>
+    <description>Aplicación web para gestión de Panadería Rodrigo - Módulo 6</description>
 
     <properties>
         <java.version>17</java.version>
@@ -79,6 +79,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <version>1.18.36</version>
             <optional>true</optional>
         </dependency>
 

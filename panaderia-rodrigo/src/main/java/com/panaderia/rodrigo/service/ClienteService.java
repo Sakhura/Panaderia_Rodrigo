@@ -34,7 +34,10 @@ public class ClienteService {
     }
 
     public Cliente save(Cliente cliente) {
-        if (clienteRepository.existsByEmail(cliente.getEmail())) {
+        // Bug fix: solo verificar email duplicado en CREACIÓN (id == null).
+        // Al editar, el cliente ya tiene ese email registrado; si no se verifica
+        // el id, siempre lanzaría "Ya existe un cliente con ese email".
+        if (cliente.getId() == null && clienteRepository.existsByEmail(cliente.getEmail())) {
             throw new RuntimeException("Ya existe un cliente con el email: " + cliente.getEmail());
         }
         return clienteRepository.save(cliente);
